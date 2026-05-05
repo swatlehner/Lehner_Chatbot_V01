@@ -79,10 +79,8 @@
 
             // Show user message
             chatBox.innerText += "\n\n🧑 You: " + q + "\n🤖 Bot: ";
-	    console.log(q, session_id);
-	    console.log("QUESTION:", q);
-	    console.log("SESSION:", session_id);
-            const res = await fetch(`${BACKEND_URL}/ask`, {
+
+            const res = await fetch("http://localhost:8000/ask", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
@@ -91,11 +89,25 @@
                 })
             });
 
-            const text = await res.text();
-	    chatBox.innerText += text;
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+
+            let done = false;
+
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+
+                if (value) {
+                    const chunk = decoder.decode(value);
+                    chatBox.innerText += chunk;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
 
             document.getElementById("q").value = "";
         }
+
 
         // ----------------------------
         // CLEAR CHAT

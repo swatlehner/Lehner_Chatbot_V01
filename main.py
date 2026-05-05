@@ -16,23 +16,17 @@ import os
 
 ENV = os.getenv("ENV", "dev")
 
-if ENV == "dev":
-    origins = ["*"]
-    allow_credentials = False
-else:
-    origins = [
-        "https://yourdomain.com",
-        "https://www.yourdomain.com"
-    ]
-    allow_credentials = False
 
 app = FastAPI()
 
 # allow frontend to talk to backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=allow_credentials,
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500"
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
