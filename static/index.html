@@ -51,29 +51,11 @@
     <input id="q" placeholder="Ask a question...">
     <button onclick="ask()">Send</button>
 
-<script>
-    // ----------------------------
-    // BACKEND URL (ROBUST)
-    // ----------------------------
-    let BACKEND_URL;
-
-    if (window.location.protocol === "file:") {
-        // Opened as local file
-        BACKEND_URL = "http://127.0.0.1:8000";
-    } else if (
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1"
-    ) {
-        // Served locally
-        BACKEND_URL = "http://127.0.0.1:8000";
-    } else {
-        // Production
-        BACKEND_URL = "https://your-railway-app.up.railway.app";
-    }
-</script>
 
 
     <script>
+	const BACKEND_URL = "https://lehnerchatbotv01-production.up.railway.app";
+
         // ----------------------------
         // SESSION ID
         // ----------------------------
@@ -97,7 +79,9 @@
 
             // Show user message
             chatBox.innerText += "\n\n🧑 You: " + q + "\n🤖 Bot: ";
-
+	    console.log(q, session_id);
+	    console.log("QUESTION:", q);
+	    console.log("SESSION:", session_id);
             const res = await fetch(`${BACKEND_URL}/ask`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -107,21 +91,8 @@
                 })
             });
 
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-
-            let done = false;
-
-            while (!done) {
-                const { value, done: doneReading } = await reader.read();
-                done = doneReading;
-
-                if (value) {
-                    const chunk = decoder.decode(value);
-                    chatBox.innerText += chunk;
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                }
-            }
+            const text = await res.text();
+	    chatBox.innerText += text;
 
             document.getElementById("q").value = "";
         }
