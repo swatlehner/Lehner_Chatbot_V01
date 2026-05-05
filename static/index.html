@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Chatbot</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+
+        #chat {
+            white-space: pre-wrap;
+            border: 1px solid #ccc;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: 70%;
+            padding: 8px;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin-left: 5px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>📄 PDF Chatbot</h2>
+
+    <div class="top-bar">
+        <button onclick="clearChat()">🧹 Clear Chat</button>
+    </div>
+
+    <div id="chat"></div>
+
+    <input id="q" placeholder="Ask a question...">
+    <button onclick="ask()">Send</button>
+
+<script>
+    // ----------------------------
+    // BACKEND URL (ROBUST)
+    // ----------------------------
+    let BACKEND_URL;
+
+    if (window.location.protocol === "file:") {
+        // Opened as local file
+        BACKEND_URL = "http://127.0.0.1:8000";
+    } else if (
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+    ) {
+        // Served locally
+        BACKEND_URL = "http://127.0.0.1:8000";
+    } else {
+        // Production
+        BACKEND_URL = "https://your-railway-app.up.railway.app";
+    }
+</script>
+
+
+    <script>
+        // ----------------------------
+        // SESSION ID
+        // ----------------------------
+        let session_id = localStorage.getItem("session_id");
+
+        if (!session_id) {
+            session_id = crypto.randomUUID();
+            localStorage.setItem("session_id", session_id);
+        }
+
+        const chatBox = document.getElementById("chat");
+
+
+
+        // ----------------------------
+        // ASK FUNCTION (STREAMING)
+        // ----------------------------
+        async function ask() {
+            const q = document.getElementById("q").value;
+            if (!q) return;
+
+            // Show user message
+            chatBox.innerText += "\n\n🧑 You: " + q + "\n🤖 Bot: ";
+
+            const res = await fetch(`${BACKEND_URL}/ask`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    question: q,
+                    session_id: session_id
+                })
+            });
+
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+
+            let done = false;
+
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+
+                if (value) {
+                    const chunk = decoder.decode(value);
+                    chatBox.innerText += chunk;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
+
+            document.getElementById("q").value = "";
+        }
+
+        // ----------------------------
+        // CLEAR CHAT
+        // ----------------------------
+        function clearChat() {
+            localStorage.removeItem("session_id");
+            location.reload();
+        }
+    </script>
+
+    <script>
+    // Enter to send
+    document.getElementById("q").addEventListener("keydown", function(event) {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault(); // prevent newline / form submit
+            ask();
+        }
+    });
+    </script>
+
+</body>
+</html>
