@@ -159,7 +159,7 @@ def ask_gemini_stream(query, session_id):
             - If the answer is not in the document, say something helpful.
             - Do NOT invent values
             - Be precise with numbers (especially tables)
-            - Answer in the same language as the user
+            - Answer in the same language as the QUESTION
             
             CHAT HISTORY:
             {history_text}
