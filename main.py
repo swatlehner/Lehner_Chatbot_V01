@@ -26,7 +26,7 @@ app.add_middleware(
         "http://localhost:5500",
         "http://127.0.0.1:5500",
         "https://swatlehner.github.io",
-        "https://www.lehner.eu/"
+        "https://www.lehner.eu"
     ],
     allow_credentials=False,
     allow_methods=["*"],
