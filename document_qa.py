@@ -138,8 +138,3 @@ def ask_gemini_stream(query, session_id, manual):
     # store after full answer is done
     if full_answer and not full_answer.startswith("Error"):
         add_to_history(session_id, query, full_answer)        
-# ----------------------------
-# BACKWARD COMPATIBILITY
-# ----------------------------
-def retrieve_chunks(query, top_k=5):
-    return [full_text]
