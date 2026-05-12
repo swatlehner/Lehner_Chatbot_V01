@@ -15,7 +15,6 @@ if not api_key:
 
 client = genai.Client(api_key=api_key)
 
-PDF_FILE = "sources/SuperVario_Deutsch_LAS4.pdf"
 GEMINI_MODEL = "gemini-2.5-flash"
 
 MAX_DOC_CHARS = 100000
@@ -40,8 +39,15 @@ def load_full_document(path):
     return text
 
 
-full_text = load_full_document(PDF_FILE)
+PDF_FILES = {
+    "manual_a": "sources/SuperVario_Deutsch_LAS4.pdf",
+    "manual_b": "sources/POLARO_M_L_XL_march2024.pdf"
+}
 
+documents = {
+    key: load_full_document(path)
+    for key, path in PDF_FILES.items()
+}
 # ----------------------------
 # SESSION MEMORY
 # ----------------------------
@@ -81,56 +87,7 @@ def format_history(session_id):
     return text
 
 
-# ----------------------------
-# SAFE GEMINI CALL
-# ----------------------------
-def safe_generate(prompt, retries=3):
-    for i in range(retries):
-        try:
-            return client.models.generate_content(
-                model=GEMINI_MODEL,
-                contents=prompt
-            ).text
 
-        except Exception as e:
-            print(f"[Gemini attempt {i+1} failed]", e)
-            time.sleep(2)
-
-    return "Error: model temporarily unavailable."
-
-
-# ----------------------------
-# MAIN QA FUNCTION
-# ----------------------------
-def ask_gemini(query, session_id, chunks=None):
-    history_text = format_history(session_id)
-
-    prompt = f"""
-You are an expert assistant answering questions based ONLY on the user manual.
-
-Rules:
-- If the answer is not in the document, say something helpful.
-- Do NOT invent values
-- Be precise with numbers (especially tables)
-- Answer in the same language as the user
-
-CHAT HISTORY:
-{history_text}
-
-USER MANUAL:
-{full_text}
-
-QUESTION:
-{query}
-"""
-
-    answer = safe_generate(prompt)
-
-    # Only store valid answers
-    if answer and not answer.startswith("Error"):
-        add_to_history(session_id, query, answer)
-
-    return answer
 # ----------------------------
 # STREAM QA FUNCTION
 # ----------------------------
@@ -149,9 +106,10 @@ def stream_gemini(prompt):
         print("Streaming error:", e)
         yield "\n[Error: model unavailable]"
         
-def ask_gemini_stream(query, session_id):
+        
+def ask_gemini_stream(query, session_id, manual):        
     history_text = format_history(session_id)
-
+    user_manual = documents.get(manual)
     prompt = f"""
             You are an expert assistant answering questions based ONLY on the user manual.
             
@@ -165,7 +123,7 @@ def ask_gemini_stream(query, session_id):
             {history_text}
             
             USER MANUAL:
-            {full_text}
+            {user_manual}
             
             QUESTION:
             {query}

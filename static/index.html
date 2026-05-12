@@ -46,6 +46,11 @@
         <button onclick="clearChat()">🧹 Clear Chat</button>
     </div>
 
+    <select id="manualSelect" onchange="switchManual()">
+        <option value="manual_a">Manual A</option>
+        <option value="manual_b">Manual B</option>
+    </select>
+
     <div id="chat"></div>
 
     <input id="q" placeholder="Ask a question...">
@@ -74,6 +79,7 @@
         // ASK FUNCTION (STREAMING)
         // ----------------------------
         async function ask() {
+            const manual = document.getElementById("manualSelect").value;
             const q = document.getElementById("q").value;
             if (!q) return;
 
@@ -85,7 +91,8 @@
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
                     question: q,
-                    session_id: session_id
+                    session_id: session_id,
+                    manual: manual
                 })
             });
 
@@ -115,6 +122,12 @@
         function clearChat() {
             localStorage.removeItem("session_id");
             location.reload();
+        }
+        function switchManual() {
+            session_id = crypto.randomUUID();
+            localStorage.setItem("session_id", session_id);
+
+            chatBox.innerText = "";
         }
     </script>
 

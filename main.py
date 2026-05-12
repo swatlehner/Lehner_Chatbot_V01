@@ -38,12 +38,13 @@ app.add_middleware(
 class Query(BaseModel):
     question: str
     session_id: str
+    manual: str
     
 @app.post("/ask")
 def ask(q: Query):
 
     def generator():
-        for token in ask_gemini_stream(q.question, q.session_id):
+        for token in ask_gemini_stream(q.question, q.session_id, q.manual):
             yield token
 
     return StreamingResponse(generator(), media_type="text/plain")
